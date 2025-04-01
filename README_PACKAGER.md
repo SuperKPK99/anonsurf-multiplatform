@@ -1,120 +1,120 @@
-# AnonSurf Multi-Platform Paketleme Kılavuzu
+# AnonSurf Multi-Platform Packaging Guide
 
-Bu belge, AnonSurf Multi-Platform projesinin farklı Linux dağıtımları için paketleme işlemlerini açıklar.
+This document explains the packaging process for AnonSurf Multi-Platform for different Linux distributions.
 
-## Otomatik Paketleme Betiği
+## Automated Packaging Script
 
-`build-all-packages.sh` betiği, herhangi bir Linux dağıtımında çalıştırılabilir ve üç farklı paket formatını (.deb, .rpm ve .pkg.tar.zst) otomatik olarak oluşturur. Bu betik, hangi dağıtımı kullandığınız önemli olmaksızın tüm paket formatları için aynı anda yapı işlemi gerçekleştirir.
+The `build-all-packages.sh` script can be run on any Linux distribution and automatically creates three different package formats (.deb, .rpm, and .pkg.tar.zst). This script performs the build process for all package formats simultaneously, regardless of which distribution you are using.
 
-### Kullanım
+### Usage
 
-1. Betiği çalıştırılabilir yapın:
+1. Make the script executable:
    ```bash
    chmod +x build-all-packages.sh
    ```
 
-2. Betiği çalıştırın:
+2. Run the script:
    ```bash
    ./build-all-packages.sh
    ```
 
-3. İşlem tamamlandığında, aşağıdaki paketler `packages` dizininde oluşturulacaktır:
+3. When the process is complete, the following packages will be created in the `packages` directory:
    - `anonsurf-multiplatform_1.0.0-1_amd64.deb` (Debian/Ubuntu)
    - `anonsurf-multiplatform-1.0.0-1.fc38.x86_64.rpm` (Fedora/RHEL/CentOS)
    - `anonsurf-multiplatform-1.0.0-1-x86_64.pkg.tar.zst` (Arch Linux)
 
-## Paket Yapısı
+## Package Structure
 
-Oluşturulan paketler şu dosyaları içerecektir:
+The generated packages will contain the following files:
 
 ```
-/usr/bin/anonsurf                          # CLI aracı
-/usr/sbin/anonsurfd                        # Daemon çalıştırılabilir dosyası
-/usr/lib/anonsurf/anonsurf_gtk_vala.so     # GUI kitaplığı
-/usr/lib/anonsurf/anondaemon               # AnonSurf Tor sarmalayıcı betiği
-/usr/lib/anonsurf/safekill                 # Uygulamaları sonlandırma betiği
-/usr/share/applications/anonsurf-gtk.desktop # Uygulama başlatıcısı
-/etc/anonsurf/torrc.base                   # Temel Tor yapılandırması
-/usr/lib/systemd/system/anonsurfd.service  # Systemd servisi
-/var/lib/anonsurf/                         # Çalışma zamanı veri dizini
+/usr/bin/anonsurf                          # CLI tool
+/usr/sbin/anonsurfd                        # Daemon executable
+/usr/lib/anonsurf/anonsurf_gtk_vala.so     # GUI library
+/usr/lib/anonsurf/anondaemon               # AnonSurf Tor wrapper script
+/usr/lib/anonsurf/safekill                 # Application termination script
+/usr/share/applications/anonsurf-gtk.desktop # Application launcher
+/etc/anonsurf/torrc.base                   # Base Tor configuration
+/usr/lib/systemd/system/anonsurfd.service  # Systemd service
+/var/lib/anonsurf/                         # Runtime data directory
 ```
 
-## Manuel Paketleme
+## Manual Packaging
 
-Her dağıtım için manuel paketleme adımları aşağıda açıklanmıştır.
+Below are manual packaging steps for each distribution.
 
 ### Debian/Ubuntu (.deb)
 
 ```bash
-# Gerekli paketleri yükleyin
+# Install required packages
 sudo apt-get update
 sudo apt-get install -y devscripts debhelper nim valac libgtk-3-dev libnotify-dev
 
-# Proje kök dizinine gidin
+# Go to the project root directory
 cd anonsurf-multiplatform
 
-# Kaynak tarball'ını oluşturun
+# Create source tarball
 cd ..
 tar -czf anonsurf-multiplatform_1.0.0.orig.tar.gz anonsurf-multiplatform
 cd anonsurf-multiplatform
 
-# Paketi derleyin
+# Build the package
 debuild -us -uc
 
-# .deb paketi üst dizinde oluşturulacak
+# The .deb package will be created in the parent directory
 ```
 
 ### Fedora/RHEL/CentOS (.rpm)
 
 ```bash
-# Gerekli paketleri yükleyin
+# Install required packages
 sudo dnf install -y rpm-build nim vala gtk3-devel libnotify-devel
-# veya
+# or
 sudo yum install -y rpm-build nim vala gtk3-devel libnotify-devel
 
-# RPM yapı dizini oluşturun
+# Create RPM build directory
 mkdir -p ~/rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
 
-# Spec dosyasını kopyalayın
+# Copy the spec file
 cp packaging/rpm/anonsurf-multiplatform.spec ~/rpmbuild/SPECS/
 
-# Kaynak tarball'ını oluşturun
+# Create source tarball
 cd ..
 tar -czf ~/rpmbuild/SOURCES/anonsurf-multiplatform-1.0.0.tar.gz anonsurf-multiplatform
 
-# Paketi derleyin
+# Build the package
 rpmbuild -ba ~/rpmbuild/SPECS/anonsurf-multiplatform.spec
 
-# RPM paketi ~/rpmbuild/RPMS/{mimariniz}/ dizininde olacak
+# The RPM package will be in ~/rpmbuild/RPMS/{your_architecture}/ directory
 ```
 
 ### Arch Linux (.pkg.tar.zst)
 
 ```bash
-# Gerekli paketleri yükleyin
+# Install required packages
 sudo pacman -S --needed base-devel nim vala gtk3
 
-# Yapı dizini oluşturun
+# Create build directory
 mkdir -p build-arch && cd build-arch
 
-# PKGBUILD dosyasını kopyalayın
+# Copy PKGBUILD file
 cp ../packaging/arch/PKGBUILD .
 
-# Kaynak tarball'ını oluşturun
+# Create source tarball
 cd ..
 tar -czf build-arch/anonsurf-multiplatform-1.0.0.tar.gz anonsurf-multiplatform
 
-# Paketi derleyin
+# Build the package
 cd build-arch
 makepkg -s
 
-# Paket mevcut dizinde oluşturulacak
+# The package will be created in the current directory
 ```
 
-## Bağımlılıklar
+## Dependencies
 
-- tor: Tor anonimlik ağı
-- iptables: IP paket filtreleme çerçevesi
-- gtk3: GTK+ 3 kitaplıkları (GUI için)
-- systemd: Sistem ve servis yöneticisi
-- İsteğe bağlı: nyx (Tor izleme), bleachbit (sistem temizleyici) 
+- tor: Tor anonymity network
+- iptables: IP packet filtering framework
+- gtk3: GTK+ 3 libraries (for GUI)
+- systemd: System and service manager
+- Optional: nyx (Tor monitoring), bleachbit (system cleaner) 

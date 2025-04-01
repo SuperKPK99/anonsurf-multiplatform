@@ -1,8 +1,8 @@
-# Paketleme işlemi için geçici dizinler
+# Temporary directories for packaging
 /build-*/
 /packages/
 
-# Derleyici ve sistem dosyaları
+# Compiler and system files
 *.o
 *.so
 *.a
@@ -15,13 +15,13 @@ __pycache__/
 *~
 .DS_Store
 
-# IDE dosyaları
+# IDE files
 .idea/
 .vscode/
 *.sublime-project
 *.sublime-workspace
 
-# Diğer
+# Other
 *.log
 *.tar.gz
 *.tar.xz

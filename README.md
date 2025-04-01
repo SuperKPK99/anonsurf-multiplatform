@@ -4,6 +4,8 @@ AnonSurf Multi-Platform is a comprehensive anonymization tool that routes intern
 
 This is a fork of the original [ParrotSec/anonsurf](https://github.com/ParrotSec/anonsurf) project, enhanced to work seamlessly across multiple Linux distributions.
 
+[![Turkish Documentation](https://img.shields.io/badge/Türkçe_Dokümantasyon-🇹🇷-red.svg)](README.tr.md)
+
 ## Features
 
 - **Cross-Platform Compatibility**: Works on Debian-based, Arch-based, and RPM-based Linux distributions
