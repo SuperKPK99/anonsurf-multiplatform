@@ -15,11 +15,43 @@ This is a fork of the original [ParrotSec/anonsurf](https://github.com/ParrotSec
 
 ## Requirements
 
+### Build Requirements
+- Nim compiler (>= 1.6.0)
+- libnim-gintro-dev (for GTK GUI)
+- GTK3 development libraries
+- make
+- gcc/clang
+- pkg-config
+
+### Runtime Requirements
 - Linux operating system (Debian/Ubuntu, Arch, Fedora/RHEL, etc.)
 - Tor package
-- For GUI mode: GTK3 environment
+- iptables or nftables
+- resolvconf (recommended but not required)
+- GTK3 libraries (for GUI mode)
 
 ## Installation
+
+### Installing Build Dependencies
+
+#### Debian/Ubuntu
+```bash
+sudo apt install nim libnim-gintro-dev libgtk-3-dev make gcc pkg-config tor iptables
+```
+
+#### Arch Linux
+```bash
+sudo pacman -S nim gtk3 make gcc pkg-config tor iptables
+# Install gintro from AUR
+yay -S nim-gintro
+```
+
+#### Fedora/RHEL
+```bash
+sudo dnf install nim gtk3-devel make gcc pkg-config tor iptables
+# For gintro, you might need to install via nimble
+nimble install gintro
+```
 
 ### From Source
 
@@ -56,6 +88,15 @@ sudo pacman -U anonsurf-multiplatform-1.0.0-1-x86_64.pkg.tar.zst
 ```bash
 sudo dnf install anonsurf-multiplatform-1.0.0-1.fc38.x86_64.rpm
 ```
+
+### Building Distribution Packages
+
+To build packages for different distributions:
+```bash
+./build-all-packages.sh
+```
+
+This will create packages in the `build/` directory.
 
 ## Usage
 
@@ -103,6 +144,24 @@ anonsurf-gtk
 - While AnonSurf provides anonymity, it is not foolproof. Always practice safe browsing habits.
 - Do not run untrusted programs while using AnonSurf, as they could potentially bypass the Tor proxy.
 - For highest security, consider using Tails or Whonix, which are specifically designed for anonymity.
+
+## Troubleshooting
+
+### DNS Issues
+If you experience DNS issues:
+```bash
+sudo anonsurf stop
+sudo nano /etc/resolv.conf  # Change nameserver to 1.1.1.1 or 8.8.8.8
+sudo anonsurf start
+```
+
+### Network Connectivity Issues
+If you cannot connect to any websites after starting AnonSurf:
+```bash
+sudo anonsurf stop
+sudo systemctl restart tor
+sudo anonsurf start
+```
 
 ## Contributing
 
