@@ -33,9 +33,15 @@ install:
 	# Install scripts
 	install -Dm755 scripts/anondaemon /usr/lib/anonsurf/anondaemon
 	install -Dm755 scripts/safekill /usr/lib/anonsurf/safekill
+	install -Dm755 scripts/dnschanger-hook /etc/dhcp/dhclient-enter-hooks.d/dnschanger
 	
 	# Install configurations
 	install -Dm644 configs/torrc.base /etc/anonsurf/torrc.base
+	
+	# Install icons
+	install -Dm644 icons/anonsurf.png /usr/share/icons/hicolor/128x128/apps/anonsurf.png
+	install -Dm644 icons/status.png /usr/share/icons/hicolor/128x128/apps/anonsurf-status.png
+	install -Dm644 icons/about.png /usr/share/icons/hicolor/128x128/apps/anonsurf-about.png
 	
 	# Install systemd units
 	install -Dm644 sys-units/anonsurfd.service /usr/lib/systemd/system/anonsurfd.service
@@ -52,7 +58,11 @@ uninstall:
 	rm -f /usr/lib/anonsurf/anonsurf_gtk_vala.so
 	rm -f /usr/lib/anonsurf/anondaemon
 	rm -f /usr/lib/anonsurf/safekill
+	rm -f /etc/dhcp/dhclient-enter-hooks.d/dnschanger
 	rm -f /usr/share/applications/anonsurf-gtk.desktop
+	rm -f /usr/share/icons/hicolor/128x128/apps/anonsurf.png
+	rm -f /usr/share/icons/hicolor/128x128/apps/anonsurf-status.png
+	rm -f /usr/share/icons/hicolor/128x128/apps/anonsurf-about.png
 	rm -rf /etc/anonsurf
 	rm -f /usr/lib/systemd/system/anonsurfd.service
 	rm -rf /var/lib/anonsurf

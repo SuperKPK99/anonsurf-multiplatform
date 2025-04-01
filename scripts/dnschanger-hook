@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# Hook script for dhclient-etcresolvconf
+# This hook script is used by dhclient to maintain DNS settings
+# while AnonSurf is running.
+#
+# Original Devs:
+# Lorenzo 'Palinuro' Faletra <palinuro@parrotsec.org>
+# Nong Hoang 'DmKnght' Tu <dmknght@parrotsec.org>
+#
+# Multi-Platform Fork Maintainer:
+# ibrahimsql ibrahimsql@proton.me
+#
+# Licensed under GPL-2.0
+
+# Check if AnonSurf is running
+if [ -f /var/run/anonsurf.pid ]; then
+    # AnonSurf is running, force Tor DNS
+    if [ -x /usr/bin/dnstool ]; then
+        /usr/bin/dnstool address 127.0.0.1
+        echo "AnonSurf is running, keeping Tor's DNS settings"
+        exit 0
+    fi
+fi
+
+# Normal operation, let dhclient handle DNS
+exit 0 
