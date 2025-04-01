@@ -1,0 +1,32 @@
+# Paketleme işlemi için geçici dizinler
+/build-*/
+/packages/
+
+# Derleyici ve sistem dosyaları
+*.o
+*.so
+*.a
+*.la
+*.lo
+*.pyc
+*.pyo
+__pycache__/
+*.swp
+*~
+.DS_Store
+
+# IDE dosyaları
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Diğer
+*.log
+*.tar.gz
+*.tar.xz
+*.tar.bz2
+*.zip
+*.rpm
+*.deb
+*.pkg.tar.zst 

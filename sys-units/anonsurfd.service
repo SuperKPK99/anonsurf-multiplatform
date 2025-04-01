@@ -1,0 +1,15 @@
+[Unit]
+Description=AnonSurf Anonymizing Daemon
+Before=poweroff.target reboot.target tor.service
+After=network.target
+Wants=tor.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/anonsurf/anondaemon start
+ExecReload=/usr/lib/anonsurf/anondaemon restart
+ExecStop=/usr/lib/anonsurf/anondaemon stop
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target 

@@ -1,0 +1,33 @@
+Source: anonsurf-multiplatform
+Section: net
+Priority: optional
+Maintainer: ibrahimsql ibrahimsql@proton.me 
+Build-Depends: debhelper (>= 11), nim, valac, libgtk-3-dev, libnotify-dev
+Standards-Version: 4.5.0
+Homepage: https://github.com/ibrahimsql/anonsurf-multiplatform
+
+Package: anonsurf-multiplatform
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, tor, iptables, gtk3, systemd
+Recommends: nyx, bleachbit
+Conflicts: anonsurf
+Provides: anonsurf
+Description: Anonymous Mode for Internet - Multi-Platform Version
+ AnonSurf is a tool designed to route all internet traffic
+ through the Tor network for enhanced anonymity.
+ .
+ This multi-platform version supports:
+  * Debian-based systems (Ubuntu, Mint, etc.)
+  * Arch-based systems (Manjaro, EndeavourOS, etc.)
+  * RPM-based systems (Fedora, RHEL, etc.)
+  * Various DNS resolver systems
+ .
+ Features:
+  * Transparent Tor proxy
+  * DNS leak protection
+  * IP leak protection
+  * Command-line interface
+  * Graphical interface
+  * System service integration 
+  * Tor control port integration
+  * 

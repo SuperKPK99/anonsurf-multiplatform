@@ -1,0 +1,255 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides:          anonsurf
+# Required-Start:
+# Required-Stop:
+# Should-Start:
+# Default-Start:
+# Default-Stop:
+# Short-Description: Transparent Proxy through TOR.
+### END INIT INFO
+#
+# Original Devs:
+# Lorenzo 'Palinuro' Faletra <palinuro@parrotsec.org>
+# Lisetta 'Sheireen' Ferrero <sheireen@autistiche.org>
+# Francesco 'Mibofra' Bonanno <mibofra@parrotsec.org>
+# Nong Hoang 'DmKnght' Tu <dmknght@parrotsec.org>
+# Daniel 'Sawyer' Garcia <dagaba13@gmail.com>
+#
+# Multi-Platform Fork Maintainer:
+# Your Name <your.email@example.com>
+#
+# This software is licensed under GPL-2.0
+
+export BLUE='\033[1;94m'
+export GREEN='\033[1;92m'
+export RED='\033[1;91m'
+export RESETCOLOR='\033[1;00m'
+
+# Destinations you don't want routed through Tor
+TOR_EXCLUDE="192.168.0.0/16 172.16.0.0/12 10.0.0.0/8"
+
+# Detect OS and distribution specifics
+if [ -f /etc/os-release ]; then
+    . /etc/os-release
+    OS_ID="$ID"
+    OS_ID_LIKE="$ID_LIKE"
+else
+    echo "Cannot detect OS. Using generic settings."
+    OS_ID="unknown"
+    OS_ID_LIKE=""
+fi
+
+# Detect TOR_UID based on distribution
+if [ "$OS_ID" = "arch" ] || [[ "$OS_ID_LIKE" == *"arch"* ]]; then
+    # Arch Linux typically uses 'tor' user
+    TOR_UID="tor"
+elif [ "$OS_ID" = "fedora" ] || [ "$OS_ID" = "centos" ] || [ "$OS_ID" = "rhel" ]; then
+    # Fedora and Red Hat based systems often use 'toranon'
+    TOR_UID="toranon"
+else
+    # Debian and most others use debian-tor
+    TOR_UID="debian-tor"
+fi
+
+# Adjust for OS-specific services
+function disableService {
+    if [ ! -e /tmp/tor.pid ]; then
+        # These services are present on Debian-based systems
+        if command -v service >/dev/null 2>&1; then
+            echo -e -n "\n $GREEN*$BLUE Stopping service nscd${RESETCOLOR}"
+            service nscd stop 2>/dev/null || echo " (already stopped or not available)"
+            echo -e -n "\n $GREEN*$BLUE Stopping service resolvconf"
+            service resolvconf stop 2>/dev/null || echo " (already stopped or not available)"
+            echo -e -n "\n $GREEN*$BLUE Stopping service dnsmasq$RESETCOLOR${RESETCOLOR}"
+            service dnsmasq stop 2>/dev/null || echo " (already stopped or not available)"
+        else
+            # For systemd-based systems without the service command
+            echo -e -n "\n $GREEN*$BLUE Stopping service nscd${RESETCOLOR}"
+            systemctl stop nscd 2>/dev/null || echo " (already stopped or not available)"
+            echo -e -n "\n $GREEN*$BLUE Stopping service resolvconf"
+            systemctl stop resolvconf 2>/dev/null || echo " (already stopped or not available)"
+            echo -e -n "\n $GREEN*$BLUE Stopping service dnsmasq$RESETCOLOR${RESETCOLOR}"
+            systemctl stop dnsmasq 2>/dev/null || echo " (already stopped or not available)"
+        fi
+        
+        # Kill any remaining instances
+        killall dnsmasq nscd resolvconf 2>/dev/null || true
+        # sleep 1
+        killall -9 dnsmasq 2>/dev/null || true
+    fi
+}
+
+function enableService {
+    echo -e -n " $GREEN*$BLUE Restarting services\n"
+    
+    if command -v service >/dev/null 2>&1; then
+        service resolvconf start 2>/dev/null || service resolvconf restart 2>/dev/null || true
+        service dnsmasq start 2>/dev/null || true
+        service nscd start 2>/dev/null || true
+    else
+        # For systemd-based systems
+        systemctl start resolvconf 2>/dev/null || systemctl restart resolvconf 2>/dev/null || true
+        systemctl start dnsmasq 2>/dev/null || true
+        systemctl start nscd 2>/dev/null || true
+    fi
+    
+    echo -e " $GREEN*$BLUE It is safe to not worry for dnsmasq and nscd start errors if they are not installed.$RESETCOLOR"
+}
+
+function startSurf {
+    # Get Tor ports from configuration
+    TOR_PORT=$(grep TransPort "/etc/tor/torrc" | cut -d " " -f 2 | cut -d ":" -f 2)
+    DNS_PORT=$(grep DNSPort "/etc/tor/torrc" | cut -d " " -f 2 | cut -d ":" -f 2)
+    
+    # Init DNS
+    echo -e "[$GREEN*${RESETCOLOR}]$BLUE Modified resolv.conf to use Tor${RESETCOLOR}"
+    
+    /usr/bin/dnstool create-backup
+    /usr/bin/dnstool address 127.0.0.1
+    
+    # disable ipv6
+    echo -e "[$GREEN*${RESETCOLOR}]$BLUE Disabling IPv6 for security reasons${RESETCOLOR}"
+    /sbin/sysctl -w net.ipv6.conf.all.disable_ipv6=1
+    /sbin/sysctl -w net.ipv6.conf.default.disable_ipv6=1
+    
+    # Backup iptables rules
+    if ! [ -f /etc/network/iptables.rules ]; then
+        # For iptables-legacy systems (Debian, Ubuntu)
+        if command -v iptables-save >/dev/null 2>&1; then
+            /usr/sbin/iptables-save > /etc/network/iptables.rules
+            echo -e "[$GREEN*${RESETCOLOR}]$BLUE Saved iptables rules${RESETCOLOR}"
+        # For nftables systems (newer distros)
+        elif command -v nft >/dev/null 2>&1; then
+            nft list ruleset > /etc/network/nftables.rules
+            echo -e "[$GREEN*${RESETCOLOR}]$BLUE Saved nftables rules${RESETCOLOR}"
+        fi
+    fi
+    
+    # Making IPTables rules
+    /usr/sbin/iptables -F
+    /usr/sbin/iptables -t nat -F
+    
+    # set iptables nat
+    echo -e "[$GREEN*${RESETCOLOR}]$BLUE Configuring iptables rules to route all traffic through tor${RESETCOLOR}"
+    /usr/sbin/iptables -t nat -A OUTPUT -m owner --uid-owner $TOR_UID -j RETURN
+    
+    #set dns redirect
+    echo -e " $GREEN+$BLUE Redirecting DNS traffic through tor${RESETCOLOR}"
+    /usr/sbin/iptables -t nat -A OUTPUT -d 127.0.0.1/32 -p udp -m udp --dport 53 -j REDIRECT --to-ports "$DNS_PORT"
+    
+    #resolve .onion domains mapping 10.192.0.0/10 address space
+    /usr/sbin/iptables -t nat -A OUTPUT -p tcp -d 10.192.0.0/10 -j REDIRECT --to-ports "$TOR_PORT"
+    /usr/sbin/iptables -t nat -A OUTPUT -p udp -d 10.192.0.0/10 -j REDIRECT --to-ports "$TOR_PORT"
+    
+    #exclude local addresses
+    for NET in $TOR_EXCLUDE 127.0.0.0/9 127.128.0.0/10; do
+        /usr/sbin/iptables -t nat -A OUTPUT -d "$NET" -j RETURN
+        /usr/sbin/iptables -A OUTPUT -d "$NET" -j ACCEPT
+    done
+    
+    #redirect all other output through TOR
+    /usr/sbin/iptables -t nat -A OUTPUT -p tcp --syn -j REDIRECT --to-ports "$TOR_PORT"
+    /usr/sbin/iptables -t nat -A OUTPUT -p udp -j REDIRECT --to-ports "$TOR_PORT"
+    /usr/sbin/iptables -t nat -A OUTPUT -p icmp -j REDIRECT --to-ports "$TOR_PORT"
+    
+    #accept already established connections
+    /usr/sbin/iptables -A OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+    
+    #allow only tor output
+    echo -e " $GREEN+$BLUE Allowing only tor to browse in clearnet$RESETCOLOR"
+    /usr/sbin/iptables -A OUTPUT -m owner --uid-owner $TOR_UID -j ACCEPT
+    /usr/sbin/iptables -A OUTPUT -j REJECT
+    
+    # Block all incoming traffics
+    /usr/sbin/iptables -A INPUT -m state --state ESTABLISHED -j ACCEPT
+    /usr/sbin/iptables -A INPUT -i lo -j ACCEPT
+    /usr/sbin/iptables -A INPUT -j DROP
+    
+    ### *filter FORWARD
+    /usr/sbin/iptables -A FORWARD -j DROP
+    
+    ### *filter OUTPUT
+    /usr/sbin/iptables -A OUTPUT -m state --state INVALID -j DROP
+    /usr/sbin/iptables -A OUTPUT -m state --state ESTABLISHED -j ACCEPT
+    
+    # Allow Tor process output
+    iptables -A OUTPUT -m owner --uid-owner $TOR_UID -p tcp -m tcp --tcp-flags FIN,SYN,RST,ACK SYN -m state --state NEW -j ACCEPT
+    
+    # Allow loopback output
+    /usr/sbin/iptables -A OUTPUT -d 127.0.0.1/32 -o lo -j ACCEPT
+    
+    # Tor transproxy magic
+    /usr/sbin/iptables -A OUTPUT -d 127.0.0.1/32 -p tcp -m tcp --dport "$TOR_PORT" --tcp-flags FIN,SYN,RST,ACK SYN -j ACCEPT
+}
+
+function stopSurf {
+    # re-enable ipv6
+    /sbin/sysctl -w net.ipv6.conf.all.disable_ipv6=0
+    /sbin/sysctl -w net.ipv6.conf.default.disable_ipv6=0
+    
+    /usr/sbin/iptables -F
+    /usr/sbin/iptables -t nat -F
+    echo -e "$GREEN*$BLUE Deleted all iptables rules"
+    
+    # Restore saved iptables rules
+    if [ -f /etc/network/iptables.rules ]; then
+        /usr/sbin/iptables-restore < /etc/network/iptables.rules
+        rm /etc/network/iptables.rules
+        echo -e "$GREEN*$BLUE Iptables rules restored"
+    elif [ -f /etc/network/nftables.rules ]; then
+        nft -f /etc/network/nftables.rules
+        rm /etc/network/nftables.rules
+        echo -e "$GREEN*$BLUE Nftables rules restored"
+    fi
+    
+    echo -e -n "$GREEN*$BLUE Restore DNS service\n$RESETCOLOR"
+    
+    # Stop Tor based on init system
+    if command -v systemctl >/dev/null 2>&1; then
+        if [ "$(systemctl is-active tor)" == "active" ]; then
+            systemctl stop tor
+        fi
+    elif command -v service >/dev/null 2>&1; then
+        service tor stop
+    else
+        killall tor
+    fi
+    
+    # Restore DNS settings
+    /usr/bin/dnstool restore-backup
+}
+
+case "$1" in
+    start)
+        # disableService
+        /usr/lib/anonsurf/make-torrc
+        if [ -e /etc/tor/torrc ]; then
+            startSurf
+            # Start Tor based on init system
+            if command -v systemctl >/dev/null 2>&1; then
+                if [ "$(systemctl is-active tor)" != "active" ]; then
+                    systemctl start tor || echo -e "  [x] Can not start Tor service!"
+                fi
+            elif command -v service >/dev/null 2>&1; then
+                service tor start || echo -e "  [x] Can not start Tor service!"
+            else
+                echo -e "  [x] Could not determine service manager to start Tor!"
+            fi
+        else
+            echo -e "  [x] torrc not found. Can not start!"
+        fi
+    ;;
+    stop)
+        stopSurf
+        # enableService
+        /usr/lib/anonsurf/make-torrc restore
+    ;;
+    restart)
+        $0 stop
+        # sleep 1
+        $0 start
+    ;;
+    *)
+    esac 

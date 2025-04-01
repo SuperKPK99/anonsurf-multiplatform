@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# This script is designed to safely kill all tor connections
+# It's especially useful when dealing with stuck processes
+
+# Kill any remaining Tor process
+if command -v systemctl >/dev/null 2>&1; then
+    systemctl stop tor
+else
+    service tor stop 2>/dev/null || true
+fi
+
+# Force kill any remaining tor processes
+killall tor
+sleep 2
+killall -9 tor 2>/dev/null || true
+
+# Clean up DNS cache/settings
+if command -v systemd-resolve >/dev/null 2>&1; then
+    systemd-resolve --flush-caches
+elif command -v service >/dev/null 2>&1; then
+    service nscd restart 2>/dev/null || true
+    service dnsmasq restart 2>/dev/null || true
+fi
+
+# Restore DNS settings
+if [ -x /usr/bin/dnstool ]; then
+    /usr/bin/dnstool restore-backup
+fi
+
+echo "AnonSurf has been forcefully stopped and all connections killed." 

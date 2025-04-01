@@ -1,0 +1,30 @@
+# Maintainer: IbrahimSQL <ibrahimsql@proton.me>
+
+pkgname=anonsurf-multiplatform
+pkgver=1.0.0
+pkgrel=1
+pkgdesc="Anonymous Mode for Internet - Multi-Platform Version"
+arch=('x86_64' 'i686' 'aarch64' 'armv7h')
+url="https://github.com/ibrahimsql/anonsurf-multiplatform"
+license=('GPL2')
+depends=('tor' 'iptables' 'gtk3' 'systemd')
+makedepends=('nim' 'vala' 'gtk3')
+optdepends=('nyx: Tor monitor tool'
+            'bleachbit: System cleaner')
+conflicts=('anonsurf')
+provides=('anonsurf')
+source=("$pkgname-$pkgver.tar.gz")
+sha256sums=('SKIP')
+
+build() {
+    cd "$pkgname-$pkgver"
+    make
+}
+
+package() {
+    cd "$pkgname-$pkgver"
+    make DESTDIR="$pkgdir/" install
+
+    # Create necessary directories
+    install -dm700 "$pkgdir/var/lib/anonsurf"
+} 

@@ -1,0 +1,10 @@
+anonsurf-multiplatform (1.0.0-1) unstable; urgency=medium
+
+  * Initial release of anonsurf-multiplatform
+  * Cross-distribution compatibility
+  * Enhanced security features
+  * Both CLI and GUI interfaces
+  * Multi-language documentation
+  * System service integration
+
+ -- ibrahimsql ibrahimsql@proton.me  Tuesday, April 1, 2025 6:39 PM

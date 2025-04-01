@@ -1,0 +1,36 @@
+# Base Tor configuration for AnonSurf
+# This file is used as a template for creating the Tor configuration
+
+# General settings
+DataDirectory /var/lib/tor
+AutomapHostsOnResolve 1
+TransPort 127.0.0.1:9040
+DNSPort 127.0.0.1:5353
+SocksPort 127.0.0.1:9050
+ControlPort 127.0.0.1:9051
+
+# Logs
+Log notice file /var/log/tor/notices.log
+Log debug file /var/log/tor/debug.log
+
+# Exit policy
+ExitPolicy reject *:*
+
+# Safety and protection
+CookieAuthentication 1
+StrictNodes 1
+ClientOnly 1
+
+# Performance
+NumEntryGuards 4
+NumDirectoryGuards 3
+NumPrimaryGuards 2
+
+# Onion routing
+HiddenServiceStatistics 0
+
+# Circuit settings
+EnforceDistinctSubnets 1
+CircuitBuildTimeout 10
+LearnCircuitBuildTimeout 1
+MaxCircuitDirtiness 600 

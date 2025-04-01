@@ -1,0 +1,12 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=AnonSurf
+Comment=Anonymization toolkit for Linux
+Exec=pkexec anonsurf-gtk
+Icon=/usr/share/icons/hicolor/scalable/apps/anonsurf.svg
+Path=
+Terminal=false
+StartupNotify=true
+Categories=System;Security;Network;
+Keywords=anonymity;privacy;tor;vpn; 
