@@ -85,5 +85,5 @@ fi
 systemctl daemon-reload
 
 %changelog
-* Sat Apr 01 2023 Your Name <your-email@example.com> - 1.0.0-1
+* Tuesday, April 1, 2025 6:57 PM  ibrahimsql ibrahimsql@proton.me - 1.0.0-1
 - Initial release of AnonSurf Multi-Platform 

@@ -1,4 +1,4 @@
-NIM=/home/ibrahim/.nimble/bin/nim
+NIM=$(shell which nim)
 
 all: nim_cli gtk_gui launcher
 

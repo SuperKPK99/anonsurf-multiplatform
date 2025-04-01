@@ -3,7 +3,7 @@ Upstream-Name: anonsurf-multiplatform
 Source: https://github.com/ibrahimsql/anonsurf-multiplatform
 
 Files: *
-Copyright: 2025 Your Name ibrahimsql@proton.me 
+Copyright: 2025 ibrahimsql ibrahimsql@proton.me 
            2019-2023 ParrotSec AnonSurf Team team@parrotsec.org
 License: GPL-2.0
  This package is free software; you can redistribute it and/or modify
