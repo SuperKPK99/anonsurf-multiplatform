@@ -2,7 +2,15 @@
 
 AnonSurf Multi-Platform is a comprehensive anonymization tool that routes internet traffic through the Tor network, ensuring privacy and anonymity for users on various Linux distributions.
 
-This is a fork of the original [ParrotSec/anonsurf](https://github.com/ParrotSec/anonsurf) project, enhanced to work seamlessly across multiple Linux distributions.
+## About
+
+> **Privacy is your right, not a privilege**
+
+AnonSurf Multi-Platform is a powerful, cross-distribution anonymization tool that protects your privacy by routing all your internet traffic through the Tor network. It provides a simple yet effective way to maintain anonymity online, defend against surveillance, and access restricted content.
+
+Unlike other Tor routing solutions, AnonSurf Multi-Platform works seamlessly across multiple Linux distributions including Debian-based, Arch-based, and RPM-based systems with a unified codebase and installation process.
+
+This is a fork of the original [ParrotSec/anonsurf](https://github.com/ParrotSec/anonsurf) project, enhanced with cross-platform support and additional features.
 
 [![Turkish Documentation](https://img.shields.io/badge/Türkçe_Dokümantasyon-🇹🇷-red.svg)](README.tr.md)
 
