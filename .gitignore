@@ -2,6 +2,9 @@
 /build-*/
 /packages/
 
+# Exclude Turkish build script
+build-all-packages.sh
+
 # Compiler and system files
 *.o
 *.so
